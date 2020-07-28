@@ -1,6 +1,8 @@
 from abc import *
 
 # abstract class
+from abc import ABC
+
 """
 1. 导入模块
 2. 类中metaclass=ABCMeta
@@ -33,3 +35,15 @@ class Order(metaclass=ABCMeta):
     @abstractmethod
     def get_order(self):
         pass
+
+class AutoMove(Move, ABC):
+    """自动移动"""
+    pass
+
+class Destroy(metaclass=ABCMeta):
+    """回收的规范"""
+
+    @abstractmethod
+    def is_destroyed(self):
+        pass
+

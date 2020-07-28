@@ -1,7 +1,7 @@
 import pygame
 from ui.locals import *
 from ui.action import *
-
+import time
 
 class PlayerTank(Display, Move):
 
@@ -24,6 +24,9 @@ class PlayerTank(Display, Move):
         # width , height
         self.width = self.images[0].get_width()
         self.height = self.images[0].get_height()
+        # 时间延时
+        self.__fire_start = 0
+        self.__fire_delay = 0.5
 
 
     def display(self):
@@ -73,6 +76,12 @@ class PlayerTank(Display, Move):
                 #     self.x = GAME_WIDTH - self.width
 
     def fire(self):
+        now = time.time()
+
+        if now -self.__fire_start < self.__fire_delay:
+            return None
+        self.__fire_start = now
+
         print("fire")
         # 创建子弹
         x = 0
@@ -135,8 +144,10 @@ class PlayerTank(Display, Move):
             return False
 
 
-class WaLL(Display, Block):
+class WaLL(Display, Block, Destroy):
     """砖墙"""
+
+
 
     def __init__(self, **kwargs):
         self.x = kwargs["x"]
@@ -145,6 +156,8 @@ class WaLL(Display, Block):
         self.surface = kwargs["surface"]
         self.width = self.image.get_width()
         self.height = self.image.get_height()
+        # 生命值
+        self.hp = 2
 
 
     def display(self):
@@ -152,6 +165,16 @@ class WaLL(Display, Block):
 
     def destroy(self):
         pass
+
+    def get_hp(self):
+        return self.hp
+
+    def receive_beaten(self, power):
+        """power 打我者的杀伤力"""
+        self.hp -= power
+
+    def is_destroyed(self):
+        return self.hp <= 0
 
 
 class Steel(Display, Block):
@@ -199,7 +222,9 @@ class Grass(Display, Order):
     def get_order(self):
         return 100
 
-class Bullet(Display):
+class Bullet(Display, AutoMove, Destroy):
+
+
 
     def __init__(self, **kwargs):
 
@@ -212,12 +237,58 @@ class Bullet(Display):
         # x,y
         self.x = kwargs["x"] - self.width / 2
         self.y = kwargs["y"] - self.height / 2
+        # 是否回收的状态
+        self.__is_destroyed = False
+        # 杀伤力
+        self.power = 1
+
+
 
     def display(self):
         self.surface.blit(self.image, (self.x, self.y))
 
     def move(self):
-        pass
+        # 方向相同
+        if self.direction == Direction.UP:
+            self.y -= self.speed
+            if self.y < 0:
+                # 出屏幕了， 回收
+                self.__is_destroyed = True
+        elif self.direction == Direction.DOWN:
+            self.y += self.speed
+            if self.y > GAME_HEIGHT - self.height:
+                # 出屏幕了， 回收
+                self.__is_destroyed = True
+        elif self.direction == Direction.LEFT:
+            self.x -= self.speed
+            if self.x < 0:
+                # 出屏幕了， 回收
+                self.__is_destroyed = True
 
-    def destroy(self):
-        pass
+        elif self.direction == Direction.RIGHT:
+            self.x += self.speed
+            if self.x > GAME_WIDTH - self.width:
+                # 出屏幕了， 回收
+                self.__is_destroyed = True
+
+    def is_blocked(self, block):
+        # 矩形和矩形的碰撞， 当前矩形
+        rect_self = pygame.Rect(self.x, self.y, self.width, self.height)
+        rect_wall = pygame.Rect(block.x, block.y, block.width, block.height)
+
+        return pygame.Rect.colliderect(rect_self, rect_wall)
+
+
+    def is_destroyed(self):
+        if self.power <= 0:
+            return True
+
+        return self.__is_destroyed
+
+    def get_attack_power(self):
+        return self.power
+
+    def receive_attack(self, hp):
+        """hp 被打者的生命值"""
+        self.power -= hp
+

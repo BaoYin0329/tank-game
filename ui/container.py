@@ -53,6 +53,11 @@ class GameContainer:
         # self.views.sort(key=lambda view: view.get_order() if isinstance(view, Order) else 0)
         self.views.sort(key=self.__sort)
         # self.views = sorted(self.views,key=self.__sort)
+        print(len(self.views))
+        # 判断物体是否需要回收
+        for view in list(self.views):
+            if isinstance(view, Destroy) and view.is_destroyed():
+                self.views.remove(view)
 
         # 遍历列表，让所有的元素显示
         for view in self.views:
@@ -76,14 +81,40 @@ class GameContainer:
         #                     # 移动的物体被阻塞的物体挡住了
         #                     break
 
+        # 移动和阻塞的碰撞检测
         for move in self.views:
             if isinstance(move, Move):
                 for block in self.views:
-                # 找出所有课阻塞移动的物体
+                    # 找出所有课阻塞移动的物体
                     if isinstance(block, Block):
                         if move.is_blocked(block):
                             # 移动的物体被阻塞的物体挡住了
                             break
+
+        # 具备自动移动的物体， 让他自己移动
+        for auoMove in self.views:
+            if isinstance(auoMove, AutoMove):
+                auoMove.move()
+
+        # 子弹和砖墙的碰撞
+        for bullet in self.views:
+            if isinstance(bullet, Bullet):
+                for wall in self.views:
+                    if isinstance(wall, WaLL) and bullet.is_blocked(wall):
+                        # 判断子弹和墙是否发生碰撞
+
+                        # 根据子弹的杀伤力和墙的生命值
+                        # 杀伤力
+                        power = bullet.get_attack_power()
+                        # 生命值
+                        hp = wall.get_hp()
+
+                        # 子弹杀伤力会减弱
+                        bullet.receive_attack(hp)
+                        # 墙的生命值也会减弱
+                        wall.receive_beaten(power)
+
+                        break
 
     def keydown(self, key):
         """按下事件"""
@@ -102,8 +133,12 @@ class GameContainer:
             self.player.move(Direction.DOWN)
         if keys[K_RETURN]:
             # 发射子弹
-            self.views.append(self.player.fire())
+            # self.views.append(self.player.fire())
+            self._add_view(self.player.fire())
 
+    def _add_view(self, view):
+        if isinstance(view, Display):
+            self.views.append(view)
 
 
 class InfoContainer:
