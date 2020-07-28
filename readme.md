@@ -40,3 +40,19 @@ surface
 
 ```
 
+## 子弹
+1.属性
+```ignorelang
+坐标xy
+图片
+surface
+方向
+速度
+```
+2. 方法
+```ignorelang
+显示
+移动
+销毁
+```
+

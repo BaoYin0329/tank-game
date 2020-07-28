@@ -100,6 +100,10 @@ class GameContainer:
             self.player.move(Direction.UP)
         if keys[K_s]:
             self.player.move(Direction.DOWN)
+        if keys[K_RETURN]:
+            # 发射子弹
+            self.views.append(self.player.fire())
+
 
 
 class InfoContainer:

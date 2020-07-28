@@ -57,24 +57,41 @@ class PlayerTank(Display, Move):
             # 方向相同
             if direction == Direction.UP:
                 self.y -= self.speed
-                if self.y < 0:
-                    self.y = 0
+                # if self.y < 0:
+                #     self.y = 0
             elif direction == Direction.DOWN:
                 self.y += self.speed
-                if self.y > GAME_HEIGHT - self.height:
-                    self.y = GAME_HEIGHT - self.height
+                # if self.y > GAME_HEIGHT - self.height:
+                #     self.y = GAME_HEIGHT - self.height
             elif direction == Direction.LEFT:
                 self.x -= self.speed
-                if self.x < 0:
-                    self.x = 0
+                # if self.x < 0:
+                #     self.x = 0
             elif direction == Direction.RIGHT:
                 self.x += self.speed
-                if self.x > GAME_WIDTH - self.width:
-                    self.x = GAME_WIDTH - self.width
+                # if self.x > GAME_WIDTH - self.width:
+                #     self.x = GAME_WIDTH - self.width
 
     def fire(self):
-        # TODO:
-        pass
+        print("fire")
+        # 创建子弹
+        x = 0
+        y = 0
+        if self.direction == Direction.UP:
+            x = self.x + self.width / 2
+            y = self.y
+        elif self.direction == Direction.DOWN:
+            x = self.x + self.width / 2
+            y = self.y +self.height
+        elif self.direction == Direction.LEFT:
+            x = self.x
+            y = self.y + self.width / 2
+        elif self.direction == Direction.RIGHT:
+            x = self.x + self.height
+            y = self.y + self.width / 2
+
+        return Bullet(x=x,y=y,direction=self.direction,surface=self.surface)
+
     def is_blocked(self, wall):
         # 判断坦克和墙碰撞
 
@@ -84,12 +101,24 @@ class PlayerTank(Display, Move):
 
         if self.direction == Direction.UP:
             next_y -= self.speed
+            if next_y < 0:
+                self.bad_direction = self.direction
+                return True
         elif self.direction == Direction.DOWN:
             next_y += self.speed
+            if next_y > GAME_HEIGHT - self.height:
+                self.bad_direction = self.direction
+                return True
         elif self.direction == Direction.LEFT:
             next_x -= self.speed
+            if next_x < 0:
+                self.bad_direction = self.direction
+                return True
         elif self.direction == Direction.RIGHT:
             next_x += self.speed
+            if next_x > GAME_WIDTH - self.width:
+                self.bad_direction = self.direction
+                return True
 
         # 矩形和矩形的碰撞， 当前矩形
         rect_self = pygame.Rect(next_x, next_y, self.width, self.height)
@@ -169,3 +198,26 @@ class Grass(Display, Order):
 
     def get_order(self):
         return 100
+
+class Bullet(Display):
+
+    def __init__(self, **kwargs):
+
+        self.image = pygame.image.load("img/tankmissile.gif")
+        self.surface = kwargs["surface"]
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+        self.direction = kwargs["direction"]
+        self.speed = 5
+        # x,y
+        self.x = kwargs["x"] - self.width / 2
+        self.y = kwargs["y"] - self.height / 2
+
+    def display(self):
+        self.surface.blit(self.image, (self.x, self.y))
+
+    def move(self):
+        pass
+
+    def destroy(self):
+        pass

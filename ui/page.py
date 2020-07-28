@@ -42,8 +42,9 @@ class GamePage:
         self.gameSurface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
         self.infoSurface = pygame.Surface((INFO_WIDTH, INFO_HEIGHT))
 
-
+        # 游戏区
         self.gameContainer = GameContainer(self.gameSurface)
+        # 信息区
         self.infoContainer = InfoContainer(self.infoSurface)
 
 
